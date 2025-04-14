@@ -20,7 +20,7 @@ const PORT = process.env.PORT || 3001;
 let serviceAccount;
 try {
   // Try to load from JSON file first
-  serviceAccount = require("../credsTamohar.json");
+  serviceAccount = require("credsTamohar.json");
   console.log("Firebase credentials loaded from credsTamohar.json");
 } catch (error) {
   console.warn("Could not load credsTamohar.json:", error.message);
