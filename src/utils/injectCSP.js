@@ -21,7 +21,7 @@ function injectCSP(htmlFilePath = "./build/index.html") {
       style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
       font-src 'self' https://fonts.gstatic.com;
       img-src 'self' data: https://*.googleapis.com;
-      connect-src 'self' https://*.firebaseio.com https://*.googleapis.com wss://*.firebaseio.com;
+      connect-src 'self' https://*.firebaseio.com https://*.googleapis.com wss://*.firebaseio.com https://tamohar-02.onrender.com;
       frame-src 'self' https://*.firebaseapp.com;
       object-src 'none';
       base-uri 'self';

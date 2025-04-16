@@ -17,7 +17,7 @@ const checkAndSendNotifications = async () => {
 
     console.log(`Current time (UTC): ${currentTime}`);
 
-    // Find users with notifications enabled
+    // Find users with notifications enabled - using the updated pattern
     const usersSnapshot = await admin
       .firestore()
       .collection("users")

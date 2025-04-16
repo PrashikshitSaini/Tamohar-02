@@ -25,6 +25,7 @@ const firebaseConfig = {
     process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID || "undefined",
   appId: process.env.REACT_APP_FIREBASE_APP_ID || "undefined",
   measurementId: process.env.REACT_APP_FIREBASE_MEASUREMENT_ID || "undefined",
+  vapidKey: process.env.REACT_APP_FIREBASE_VAPID_KEY || "undefined", // <— add this
 };
 
 // Security check for environment variables
@@ -65,7 +66,8 @@ fs.readFile(swTemplatePath, "utf8", (err, data) => {
       firebaseConfig.messagingSenderId
     )
     .replace("__FIREBASE_APP_ID__", firebaseConfig.appId)
-    .replace("__FIREBASE_MEASUREMENT_ID__", firebaseConfig.measurementId);
+    .replace("__FIREBASE_MEASUREMENT_ID__", firebaseConfig.measurementId)
+    .replace("__FIREBASE_VAPID_KEY__", firebaseConfig.vapidKey); // <— add this
 
   // Write the processed service worker file
   fs.writeFile(swOutputPath, swContent, "utf8", (err) => {

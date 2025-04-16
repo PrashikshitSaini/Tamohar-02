@@ -3,6 +3,7 @@ import { doc, getDoc, updateDoc, arrayUnion } from "firebase/firestore";
 import { db, auth } from "../../firebase/firebase";
 import { FaBookmark, FaRegBookmark, FaShare } from "react-icons/fa";
 import { useAuthState } from "react-firebase-hooks/auth";
+import API_BASE_URL from "../../api/config";
 
 // Hardcoded default shlok to display if API loading fails
 const DEFAULT_SHLOK = {
@@ -19,7 +20,7 @@ const DEFAULT_SHLOK = {
 };
 
 // Backend API URL - can be configured based on environment
-const API_BASE_URL =
+const API_BASE_URL_ENV =
   process.env.REACT_APP_API_URL || "http://localhost:3001/api";
 
 const DailyShlok = () => {
@@ -40,7 +41,7 @@ const DailyShlok = () => {
         // First try to get today's shlok from the backend API
         try {
           // Get the daily shlok (same for all users on a given day)
-          const response = await fetch(`${API_BASE_URL}/shloks/daily`);
+          const response = await fetch(`${API_BASE_URL}/api/shloks/daily`);
 
           if (!response.ok) {
             throw new Error(`API error: ${response.status}`);

@@ -20,18 +20,39 @@ const PORT = process.env.PORT || 3001;
 let serviceAccount;
 try {
   // Try to load from JSON file first
-  serviceAccount = require("credsTamohar.json");
-  console.log("Firebase credentials loaded from credsTamohar.json");
+  const credPath = path.resolve(__dirname, "./credsTamohar.json");
+  if (fs.existsSync(credPath)) {
+    serviceAccount = require("./credsTamohar.json");
+    console.log("Firebase credentials loaded from credsTamohar.json");
+  } else {
+    throw new Error("Credentials file not found");
+  }
 } catch (error) {
   console.warn("Could not load credsTamohar.json:", error.message);
+
+  // Verify required environment variables are present
+  if (!process.env.FIREBASE_PROJECT_ID) {
+    console.error("Missing required environment variable: FIREBASE_PROJECT_ID");
+    process.exit(1);
+  }
+  if (!process.env.FIREBASE_CLIENT_EMAIL) {
+    console.error(
+      "Missing required environment variable: FIREBASE_CLIENT_EMAIL"
+    );
+    process.exit(1);
+  }
+  if (!process.env.FIREBASE_PRIVATE_KEY) {
+    console.error(
+      "Missing required environment variable: FIREBASE_PRIVATE_KEY"
+    );
+    process.exit(1);
+  }
 
   // Fall back to environment variables
   serviceAccount = {
     projectId: process.env.FIREBASE_PROJECT_ID,
     clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-    privateKey: process.env.FIREBASE_PRIVATE_KEY
-      ? process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n")
-      : undefined,
+    privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n"),
   };
 }
 
@@ -51,10 +72,10 @@ try {
 
 // CORS configuration - allow requests from the frontend
 const corsOptions = {
-  origin:
-    process.env.NODE_ENV === "production"
-      ? [process.env.FRONTEND_URL || "https://tamohar.onrender.com"]
-      : ["http://localhost:3000", "http://127.0.0.1:3000"],
+  origin: [
+    "https://tamohar-02.pages.dev", // Your Cloudflare domain
+    "https://tamohar-02.onrender.com",
+  ],
   methods: ["GET", "POST", "PUT", "DELETE"],
   allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true,
@@ -91,6 +112,8 @@ const cspOptions = {
       "https://securetoken.googleapis.com",
       "https://fcm.googleapis.com",
       "https://*.googleapis.com",
+      "https://tamohar-02.onrender.com",
+      "https://tamohar-02.pages.dev",
     ],
     frameSrc: ["'self'", "https://accounts.google.com"],
     objectSrc: ["'none'"],

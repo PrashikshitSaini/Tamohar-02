@@ -8,12 +8,21 @@ import reportWebVitals from "./reportWebVitals";
 const registerServiceWorker = async () => {
   if ("serviceWorker" in navigator) {
     try {
+      // Configure the service worker with hardcoded backend URL
       const registration = await navigator.serviceWorker.register(
         "/firebase-messaging-sw.js",
         {
           scope: "/",
         }
       );
+
+      // You could potentially add hardcoded URLs to the registration context
+      if (registration.active) {
+        registration.active.postMessage({
+          type: "CONFIGURE",
+          backendUrl: "https://tamohar-02.onrender.com",
+        });
+      }
 
       console.log(
         "Firebase Service Worker registered with scope:",

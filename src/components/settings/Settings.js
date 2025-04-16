@@ -7,7 +7,7 @@ import {
   onMessageListener,
 } from "../../firebase/firebase";
 import { useAuthState } from "react-firebase-hooks/auth";
-import NotificationDebugger from "./NotificationDebugger";
+
 import { sanitizeString, isValidTime } from "../../utils/sanitize";
 
 const Settings = () => {
@@ -271,17 +271,6 @@ const Settings = () => {
         <button onClick={handleSaveSettings} className="btn-primary">
           Save Settings
         </button>
-
-        <div className="advanced-section">
-          <button
-            className="btn-text"
-            onClick={() => setShowDebugger(!showDebugger)}
-          >
-            {showDebugger ? "Hide Advanced Options" : "Show Advanced Options"}
-          </button>
-
-          {showDebugger && <NotificationDebugger />}
-        </div>
       </div>
     </div>
   );
