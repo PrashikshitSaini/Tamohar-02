@@ -19,10 +19,6 @@ const DEFAULT_SHLOK = {
     "Focus on doing your best work without being attached to results. This approach reduces anxiety and promotes excellence through detachment.",
 };
 
-// Backend API URL - can be configured based on environment
-const API_BASE_URL_ENV =
-  process.env.REACT_APP_API_URL || "http://localhost:3001/api";
-
 const DailyShlok = () => {
   const [shlok, setShlok] = useState(DEFAULT_SHLOK); // Start with default
   const [loading, setLoading] = useState(true);

@@ -17,7 +17,6 @@ const Settings = () => {
   const [loading, setLoading] = useState(true);
   const [saveMessage, setSaveMessage] = useState("");
   const [notificationStatus, setNotificationStatus] = useState("");
-  const [showDebugger, setShowDebugger] = useState(false);
   const [validationError, setValidationError] = useState("");
 
   // Listen for foreground messages
