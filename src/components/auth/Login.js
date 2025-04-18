@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { signInWithEmailAndPassword, signInWithPopup } from "firebase/auth";
-import { auth, googleProvider } from "../../firebase/firebase";
+import { doc, getDoc, setDoc } from "firebase/firestore";
+import { auth, googleProvider, db } from "../../firebase/firebase";
 import { useNavigate } from "react-router-dom";
 import { sanitizeString, isValidEmail } from "../../utils/sanitize";
 
@@ -82,7 +83,26 @@ const Login = () => {
   const handleGoogleLogin = async () => {
     setLoading(true);
     try {
-      await signInWithPopup(auth, googleProvider);
+      const result = await signInWithPopup(auth, googleProvider);
+      const user = result.user;
+
+      // Check if user document exists
+      const userDocRef = doc(db, "users", user.uid);
+      const userDoc = await getDoc(userDocRef);
+
+      if (!userDoc.exists()) {
+        // Create a new user document if it doesn't exist
+        await setDoc(userDocRef, {
+          email: sanitizeString(user.email),
+          createdAt: new Date(),
+          bookmarks: [],
+          preferences: {
+            notificationsEnabled: true,
+            // Don't set onboardingCompleted flag to ensure new users see the onboarding
+          },
+        });
+      }
+
       navigate("/");
     } catch (error) {
       console.error("Google login error:", error);

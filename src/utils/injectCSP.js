@@ -17,15 +17,15 @@ function injectCSP(htmlFilePath = "./build/index.html") {
     // Define the CSP directives
     const cspContent = `
       default-src 'self';
-      script-src 'self' https://*.firebaseio.com https://*.googleapis.com;
+      script-src 'self' https://*.firebaseio.com https://*.googleapis.com https://apis.google.com https://www.gstatic.com;
       style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
       font-src 'self' https://fonts.gstatic.com;
-      img-src 'self' data: https://*.googleapis.com;
-      connect-src 'self' https://*.firebaseio.com https://*.googleapis.com wss://*.firebaseio.com https://tamohar-02.onrender.com;
-      frame-src 'self' https://*.firebaseapp.com;
+      img-src 'self' data: https://*.googleapis.com https://lh3.googleusercontent.com https://*.gstatic.com;
+      connect-src 'self' https://*.firebaseio.com https://*.googleapis.com wss://*.firebaseio.com https://tamohar-02.onrender.com https://securetoken.googleapis.com https://identitytoolkit.googleapis.com;
+      frame-src 'self' https://*.firebaseapp.com https://accounts.google.com;
       object-src 'none';
       base-uri 'self';
-      form-action 'self';
+      form-action 'self' https://identitytoolkit.googleapis.com;
     `
       .replace(/\s+/g, " ")
       .trim();
