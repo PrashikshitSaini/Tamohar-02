@@ -43,10 +43,11 @@ const Onboarding = () => {
       icon: <FaClock className="slide-icon" />,
     },
     {
-      title: "Set Your Notification Time",
-      subtitle: "Begin Your Journey",
-      description:
-        "Choose when you want to receive your daily shlok. Taking even a few minutes each day for spiritual reflection can transform your life.",
+      title: "Start Your Journey",
+      subtitle: "Begin Your Experience",
+      description: user
+        ? "Choose when you want to receive your daily shlok. Taking even a few minutes each day for spiritual reflection can transform your life."
+        : "Create an account to save your favorite shloks and get daily notifications. Or continue as a guest to explore today's wisdom.",
       image:
         "https://th.bing.com/th/id/OIP.TwOguRZHyrQjJm6nWtipJAHaEK?rs=1&pid=ImgDetMain", // Replace with actual meditation image
       icon: <FaBell className="slide-icon" />,
@@ -78,33 +79,46 @@ const Onboarding = () => {
 
   // Complete the onboarding process
   const completeOnboarding = async () => {
-    if (!user) return;
+    if (user) {
+      try {
+        // Request notification permission for final slide
+        if (currentSlide === 2) {
+          const token = await requestNotificationPermission();
 
-    try {
-      // Request notification permission for final slide
-      if (currentSlide === 2) {
-        const token = await requestNotificationPermission();
-
-        // Save user preferences
-        await updateDoc(doc(db, "users", user.uid), {
-          "preferences.onboardingCompleted": true,
-          "preferences.notificationTime": notificationTime,
-          "preferences.notificationsEnabled": Boolean(token),
-          "preferences.fcmToken": token || null,
-          "preferences.lastUpdated": new Date().toISOString(),
-        });
-      } else {
-        // Just mark onboarding as completed if skipping
-        await updateDoc(doc(db, "users", user.uid), {
-          "preferences.onboardingCompleted": true,
-        });
+          // Save user preferences
+          await updateDoc(doc(db, "users", user.uid), {
+            "preferences.onboardingCompleted": true,
+            "preferences.notificationTime": notificationTime,
+            "preferences.notificationsEnabled": Boolean(token),
+            "preferences.fcmToken": token || null,
+            "preferences.lastUpdated": new Date().toISOString(),
+          });
+        } else {
+          // Just mark onboarding as completed if skipping
+          await updateDoc(doc(db, "users", user.uid), {
+            "preferences.onboardingCompleted": true,
+          });
+        }
+      } catch (error) {
+        console.error("Error completing onboarding:", error);
       }
-
-      // Navigate to the main app
-      navigate("/");
-    } catch (error) {
-      console.error("Error completing onboarding:", error);
+    } else {
+      // For non-authenticated users, simply continue to the app
+      // localStorage flag is already set in App.js
     }
+
+    // Navigate to the main app
+    navigate("/");
+  };
+
+  // Handle sign up button for non-authenticated users
+  const goToSignUp = () => {
+    navigate("/signup");
+  };
+
+  // Handle continue as guest
+  const continueAsGuest = () => {
+    navigate("/");
   };
 
   return (
@@ -144,7 +158,7 @@ const Onboarding = () => {
                 <h3>{slide.subtitle}</h3>
                 <p>{slide.description}</p>
 
-                {index === 2 && (
+                {index === 2 && user && (
                   <div className="notification-setup">
                     <label htmlFor="notification-time">
                       Select your preferred notification time:
@@ -160,6 +174,17 @@ const Onboarding = () => {
                     </p>
                   </div>
                 )}
+
+                {index === 2 && !user && (
+                  <div className="auth-buttons">
+                    <button onClick={goToSignUp} className="btn-primary">
+                      Sign Up
+                    </button>
+                    <button onClick={continueAsGuest} className="btn-outline">
+                      Continue as Guest
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           ))}
@@ -173,10 +198,12 @@ const Onboarding = () => {
           </button>
         )}
 
-        <button className="btn-next" onClick={nextSlide}>
-          {currentSlide < slides.length - 1 ? "Next" : "Get Started"}{" "}
-          <FaArrowRight />
-        </button>
+        {(!user || currentSlide < slides.length - 1) && (
+          <button className="btn-next" onClick={nextSlide}>
+            {currentSlide < slides.length - 1 ? "Next" : "Get Started"}{" "}
+            <FaArrowRight />
+          </button>
+        )}
       </div>
 
       {currentSlide < slides.length - 1 && (

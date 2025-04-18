@@ -24,6 +24,20 @@ function App() {
   const [isLowPowered, setIsLowPowered] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [userDataLoading, setUserDataLoading] = useState(true);
+  const [hasVisited, setHasVisited] = useState(false);
+
+  // Check if this is a first-time visitor
+  useEffect(() => {
+    // Check if user has visited before using localStorage
+    const hasVisitedBefore =
+      localStorage.getItem("tamohar_hasVisited") === "true";
+    setHasVisited(hasVisitedBefore);
+
+    // If this is a first visit, set the flag for future visits
+    if (!hasVisitedBefore) {
+      localStorage.setItem("tamohar_hasVisited", "true");
+    }
+  }, []);
 
   // Check if user needs to see the onboarding
   useEffect(() => {
@@ -116,6 +130,12 @@ function App() {
     return <div className="loading">Loading...</div>;
   }
 
+  // Show onboarding to:
+  // 1. First-time visitors who aren't logged in (new visitors)
+  // 2. Logged-in users who haven't completed onboarding
+  const shouldShowOnboarding =
+    (user && showOnboarding) || (!user && !hasVisited);
+
   return (
     <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <div className="App">
@@ -155,7 +175,7 @@ function App() {
         )}
 
         {/* Show onboarding or main app based on state */}
-        {user && showOnboarding ? (
+        {shouldShowOnboarding ? (
           <Onboarding />
         ) : (
           <>
