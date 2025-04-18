@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { doc, updateDoc } from "firebase/firestore";
 import {
@@ -16,22 +16,13 @@ import {
   FaSignInAlt,
 } from "react-icons/fa";
 import { useAuthState } from "react-firebase-hooks/auth";
+import "./Onboarding.css"; // We'll create this file next
 
 const Onboarding = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [notificationTime, setNotificationTime] = useState("08:00");
-  // eslint-disable-next-line
-  const [animationDirection, setAnimationDirection] = useState("forward");
   const [user] = useAuthState(auth);
   const navigate = useNavigate();
-  const [isTransitioning, setIsTransitioning] = useState(false);
-
-  // Using images from public folder
-  const images = [
-    `${process.env.PUBLIC_URL}/logo192.png`,
-    `${process.env.PUBLIC_URL}/logo192.png`,
-    `${process.env.PUBLIC_URL}/logo192.png`,
-  ];
 
   // Define the slides content
   const slides = [
@@ -40,7 +31,6 @@ const Onboarding = () => {
       subtitle: "Daily Wisdom from the Bhagavad Gita",
       description:
         "Tamohar is designed for busy professionals and students who want to access the timeless wisdom of the Bhagavad Gita in just 5 minutes a day.",
-      image: images[0],
       icon: <FaBookOpen className="slide-icon" />,
     },
     {
@@ -48,7 +38,6 @@ const Onboarding = () => {
       subtitle: "One Shlok at a Time",
       description:
         "Each day, receive a new verse (shlok) with its meaning and practical application. Save your favorites and build a personal collection of wisdom that resonates with you.",
-      image: images[1],
       icon: <FaClock className="slide-icon" />,
     },
     {
@@ -57,64 +46,45 @@ const Onboarding = () => {
       description: user
         ? "Choose when you want to receive your daily shlok. Taking even a few minutes each day for spiritual reflection can transform your life."
         : "Create an account to save your favorite shloks and get daily notifications. Or continue as a guest to explore today's wisdom.",
-      image: images[2],
       icon: <FaBell className="slide-icon" />,
     },
   ];
 
-  // Add transition control
-  useEffect(() => {
-    if (isTransitioning) {
-      const timer = setTimeout(() => {
-        setIsTransitioning(false);
-      }, 500); // Match this to your CSS transition duration
-      return () => clearTimeout(timer);
-    }
-  }, [isTransitioning]);
-
-  // Handle next slide button
+  // Navigate to next slide
   const nextSlide = () => {
-    // Prevent multiple clicks during transition
-    if (isTransitioning) return;
-
     if (currentSlide < slides.length - 1) {
-      setIsTransitioning(true);
-      setAnimationDirection("forward");
-      setCurrentSlide((prev) => prev + 1);
+      setCurrentSlide(currentSlide + 1);
     } else {
       completeOnboarding();
     }
   };
 
-  // Handle previous slide button
+  // Navigate to previous slide
   const prevSlide = () => {
-    // Prevent multiple clicks during transition
-    if (isTransitioning) return;
-
     if (currentSlide > 0) {
-      setIsTransitioning(true);
-      setAnimationDirection("backward");
-      setCurrentSlide((prev) => prev - 1);
+      setCurrentSlide(currentSlide - 1);
     }
   };
 
   // Skip onboarding
   const skipOnboarding = () => {
-    completeOnboarding();
+    // Set localStorage flag
+    localStorage.setItem("tamohar_hasVisited", "true");
+    navigate("/");
   };
 
-  // Complete the onboarding process
+  // Complete onboarding
   const completeOnboarding = async () => {
-    // Always set the localStorage flag first to ensure it gets set even if there's an error
+    // Always set localStorage flag
     localStorage.setItem("tamohar_hasVisited", "true");
 
     if (user) {
       try {
-        // Request notification permission for final slide
-        if (currentSlide === 2) {
+        // Request notification permission if on last slide
+        if (currentSlide === slides.length - 1) {
           const token = await requestNotificationPermission();
 
-          // Save user preferences
+          // Update user preferences
           await updateDoc(doc(db, "users", user.uid), {
             "preferences.onboardingCompleted": true,
             "preferences.notificationTime": notificationTime,
@@ -123,138 +93,92 @@ const Onboarding = () => {
             "preferences.lastUpdated": new Date().toISOString(),
           });
         } else {
-          // Just mark onboarding as completed if skipping
+          // Just mark as completed if skipping
           await updateDoc(doc(db, "users", user.uid), {
             "preferences.onboardingCompleted": true,
           });
         }
       } catch (error) {
-        console.error("Error completing onboarding:", error);
-        // Continue to navigate even if there's an error
+        console.error("Error saving preferences:", error);
+        // Continue with navigation even if there's an error
       }
     }
 
-    // Navigate to the main app
+    // Navigate to home
     navigate("/");
   };
 
-  // Handle sign up button for non-authenticated users
+  // Go to sign up
   const goToSignUp = () => {
     localStorage.setItem("tamohar_hasVisited", "true");
     navigate("/signup");
   };
 
-  // Handle continue as guest
+  // Continue as guest
   const continueAsGuest = () => {
     localStorage.setItem("tamohar_hasVisited", "true");
     navigate("/");
   };
 
-  // Go directly to a specific slide
-  const goToSlide = (index) => {
-    if (isTransitioning || index === currentSlide) return;
-
-    setIsTransitioning(true);
-    setAnimationDirection(index > currentSlide ? "forward" : "backward");
-    setCurrentSlide(index);
-  };
-
   return (
-    <div className="onboarding-container">
-      <div className="onboarding-progress">
+    <div className="onboarding">
+      {/* Progress indicators */}
+      <div className="progress-dots">
         {slides.map((_, index) => (
-          <div
+          <span
             key={index}
-            className={`progress-dot ${index === currentSlide ? "active" : ""}`}
-            onClick={() => goToSlide(index)}
-            aria-label={`Go to slide ${index + 1}`}
-            role="button"
-            tabIndex={0}
+            className={`dot ${currentSlide === index ? "active" : ""}`}
+            onClick={() => setCurrentSlide(index)}
           />
         ))}
       </div>
 
-      <div className="slide-container">
-        {slides.map((slide, index) => (
-          <div
-            key={index}
-            className={`slide-content ${
-              index === currentSlide
-                ? "active"
-                : index < currentSlide
-                ? "prev"
-                : "next"
-            }`}
-          >
-            <div className="slide-image-container">
-              {/* Use regular img tag instead of background-image for better loading */}
-              <img
-                src={slide.image}
-                alt={slide.title}
-                className="slide-image"
-                onError={(e) => {
-                  // Fallback to default image if loading fails
-                  e.target.src = `${process.env.PUBLIC_URL}/logo192.png`;
-                }}
-              />
-              <div className="slide-image-overlay"></div>
-              <div className="slide-icon-wrapper">{slide.icon}</div>
-            </div>
+      {/* Slide content */}
+      <div className="slide-content">
+        <div className="slide-icon">{slides[currentSlide].icon}</div>
+        <h1>{slides[currentSlide].title}</h1>
+        <h2>{slides[currentSlide].subtitle}</h2>
+        <p>{slides[currentSlide].description}</p>
 
-            <div className="slide-text">
-              <h2>{slide.title}</h2>
-              <h3>{slide.subtitle}</h3>
-              <p>{slide.description}</p>
-
-              {index === 2 && user && (
-                <div className="notification-setup">
-                  <label htmlFor="notification-time">
-                    Select your preferred notification time:
-                  </label>
-                  <input
-                    type="time"
-                    id="notification-time"
-                    value={notificationTime}
-                    onChange={(e) => setNotificationTime(e.target.value)}
-                  />
-                  <p className="time-note">
-                    You can always change this later in settings
-                  </p>
-                </div>
-              )}
-
-              {index === 2 && !user && (
-                <div className="auth-buttons">
-                  <button onClick={goToSignUp} className="btn-primary">
-                    <FaUserPlus /> Sign Up
-                  </button>
-                  <button onClick={continueAsGuest} className="btn-outline">
-                    <FaSignInAlt /> Continue as Guest
-                  </button>
-                </div>
-              )}
-            </div>
+        {/* Show time picker for authenticated users on last slide */}
+        {currentSlide === 2 && user && (
+          <div className="time-picker">
+            <label htmlFor="time">
+              When would you like to receive notifications?
+            </label>
+            <input
+              type="time"
+              id="time"
+              value={notificationTime}
+              onChange={(e) => setNotificationTime(e.target.value)}
+            />
+            <p className="note">You can change this later in Settings</p>
           </div>
-        ))}
+        )}
+
+        {/* Show auth buttons for non-authenticated users on last slide */}
+        {currentSlide === 2 && !user && (
+          <div className="auth-buttons">
+            <button className="btn-primary" onClick={goToSignUp}>
+              <FaUserPlus /> Sign Up
+            </button>
+            <button className="btn-secondary" onClick={continueAsGuest}>
+              <FaSignInAlt /> Continue as Guest
+            </button>
+          </div>
+        )}
       </div>
 
-      <div className="onboarding-actions">
+      {/* Navigation buttons */}
+      <div className="navigation">
         {currentSlide > 0 && (
-          <button
-            className="btn-prev"
-            onClick={prevSlide}
-            disabled={isTransitioning}
-          >
+          <button className="btn-back" onClick={prevSlide}>
             <FaArrowLeft /> Back
           </button>
         )}
 
         {currentSlide < slides.length - 1 ? (
-          <button
-            className="btn-next"
-            onClick={nextSlide}
-            disabled={isTransitioning}
-          >
+          <button className="btn-next" onClick={nextSlide}>
             Next <FaArrowRight />
           </button>
         ) : (
@@ -264,6 +188,7 @@ const Onboarding = () => {
         )}
       </div>
 
+      {/* Skip button */}
       {currentSlide < slides.length - 1 && (
         <button className="btn-skip" onClick={skipOnboarding}>
           Skip
