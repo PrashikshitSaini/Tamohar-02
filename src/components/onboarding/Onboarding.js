@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { doc, updateDoc } from "firebase/firestore";
 import {
@@ -16,7 +16,7 @@ import {
   FaSignInAlt,
 } from "react-icons/fa";
 import { useAuthState } from "react-firebase-hooks/auth";
-import "./Onboarding.css"; // We'll create this file next
+import "./Onboarding.css";
 
 const Onboarding = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -51,30 +51,33 @@ const Onboarding = () => {
   ];
 
   // Navigate to next slide
-  const nextSlide = () => {
+  const nextSlide = useCallback(() => {
     if (currentSlide < slides.length - 1) {
       setCurrentSlide(currentSlide + 1);
     } else {
       completeOnboarding();
     }
-  };
+    // eslint-disable-next-line
+  }, [currentSlide, slides.length]);
 
   // Navigate to previous slide
-  const prevSlide = () => {
+  const prevSlide = useCallback(() => {
     if (currentSlide > 0) {
       setCurrentSlide(currentSlide - 1);
     }
-  };
+  }, [currentSlide]);
 
   // Skip onboarding
-  const skipOnboarding = () => {
+  const skipOnboarding = useCallback(() => {
+    console.log("Skip onboarding clicked");
     // Set localStorage flag
     localStorage.setItem("tamohar_hasVisited", "true");
     navigate("/");
-  };
+  }, [navigate]);
 
   // Complete onboarding
-  const completeOnboarding = async () => {
+  const completeOnboarding = useCallback(async () => {
+    console.log("Complete onboarding clicked");
     // Always set localStorage flag
     localStorage.setItem("tamohar_hasVisited", "true");
 
@@ -100,25 +103,27 @@ const Onboarding = () => {
         }
       } catch (error) {
         console.error("Error saving preferences:", error);
-        // Continue with navigation even if there's an error
       }
     }
 
-    // Navigate to home
-    navigate("/");
-  };
+    // Force navigate to home page
+    window.location.href = "/";
+    // eslint-disable-next-line
+  }, [currentSlide, navigate, notificationTime, user, slides]);
 
   // Go to sign up
-  const goToSignUp = () => {
+  const goToSignUp = useCallback(() => {
+    console.log("Sign up clicked");
     localStorage.setItem("tamohar_hasVisited", "true");
-    navigate("/signup");
-  };
+    window.location.href = "/signup";
+  }, []);
 
   // Continue as guest
-  const continueAsGuest = () => {
+  const continueAsGuest = useCallback(() => {
+    console.log("Continue as guest clicked");
     localStorage.setItem("tamohar_hasVisited", "true");
-    navigate("/");
-  };
+    window.location.href = "/";
+  }, []);
 
   return (
     <div className="onboarding">
@@ -159,10 +164,14 @@ const Onboarding = () => {
         {/* Show auth buttons for non-authenticated users on last slide */}
         {currentSlide === 2 && !user && (
           <div className="auth-buttons">
-            <button className="btn-primary" onClick={goToSignUp}>
+            <button className="btn-primary" onClick={goToSignUp} type="button">
               <FaUserPlus /> Sign Up
             </button>
-            <button className="btn-secondary" onClick={continueAsGuest}>
+            <button
+              className="btn-secondary"
+              onClick={continueAsGuest}
+              type="button"
+            >
               <FaSignInAlt /> Continue as Guest
             </button>
           </div>
@@ -172,17 +181,21 @@ const Onboarding = () => {
       {/* Navigation buttons */}
       <div className="navigation">
         {currentSlide > 0 && (
-          <button className="btn-back" onClick={prevSlide}>
+          <button className="btn-back" onClick={prevSlide} type="button">
             <FaArrowLeft /> Back
           </button>
         )}
 
         {currentSlide < slides.length - 1 ? (
-          <button className="btn-next" onClick={nextSlide}>
+          <button className="btn-next" onClick={nextSlide} type="button">
             Next <FaArrowRight />
           </button>
         ) : (
-          <button className="btn-start" onClick={completeOnboarding}>
+          <button
+            className="btn-start"
+            onClick={completeOnboarding}
+            type="button"
+          >
             Get Started <FaArrowRight />
           </button>
         )}
@@ -190,7 +203,7 @@ const Onboarding = () => {
 
       {/* Skip button */}
       {currentSlide < slides.length - 1 && (
-        <button className="btn-skip" onClick={skipOnboarding}>
+        <button className="btn-skip" onClick={skipOnboarding} type="button">
           Skip
         </button>
       )}
